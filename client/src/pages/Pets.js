@@ -21,7 +21,8 @@ const NewPet = gql`
       id
       name
       type
-      img
+      imgj
+      __typename
     }
   }
 `;
@@ -32,6 +33,7 @@ export default function Pets() {
   const { data, loading, error } = useQuery(PetQuery);
 
   const [addPet, newPetRes] = useMutation(NewPet, {
+    //! Update function run after the mutation comes back
     update(cache, { data: { addPet } }) {
       const data = cache.readQuery({ query: PetQuery });
       cache.writeQuery({
@@ -45,10 +47,20 @@ export default function Pets() {
     setModal(false);
     addPet({
       variables: { newPet: input },
+      optimisticResponse: {
+        __typename: "Mutation",
+        addPet: {
+          __typename: "Pet",
+          id: Math.floor(Math.random() * 10000) + "",
+          name: input.name,
+          type: input.type,
+          img: "https://via.placeholder.com/300",
+        },
+      },
     });
   };
-
-  if (loading || newPetRes.loading) {
+  // ||
+  if (loading) {
     return <Loader />;
   }
 
@@ -56,7 +68,6 @@ export default function Pets() {
     return <h2>Error</h2>;
   }
 
-  console.log(data.pets);
   if (modal) {
     return <NewPetModal onSubmit={onSubmit} onCancel={() => setModal(false)} />;
   }
