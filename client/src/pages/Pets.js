@@ -31,7 +31,15 @@ export default function Pets() {
 
   const { data, loading, error } = useQuery(PetQuery);
 
-  const [addPet, newPetRes] = useMutation(NewPet);
+  const [addPet, newPetRes] = useMutation(NewPet, {
+    update(cache, { data: { addPet } }) {
+      const data = cache.readQuery({ query: PetQuery });
+      cache.writeQuery({
+        query: PetQuery,
+        data: { pets: [addPet, ...data.pets] },
+      });
+    },
+  });
 
   const onSubmit = (input) => {
     setModal(false);
